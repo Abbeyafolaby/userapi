@@ -1,0 +1,46 @@
+### Get all users
+GET http://localhost:8080/api/users
+Accept: application/json
+
+### Get user by ID
+GET http://localhost:8080/api/users/1
+Accept: application/json
+
+### Get non-existent user (expect 404)
+GET http://localhost:8080/api/users/999
+Accept: application/json
+
+### Create a new user
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "name": "Diana",
+  "email": "diana@example.com"
+}
+
+### Create user with blank name (expect 400)
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "name": "",
+  "email": "bad@example.com"
+}
+
+### Update a user
+PUT http://localhost:8080/api/users/1
+Content-Type: application/json
+
+{
+  "name": "Alice Updated",
+  "email": "alice.updated@example.com"
+}
+
+### Delete a user
+DELETE http://localhost:8080/api/users/2
+Accept: application/json
+
+### Delete non-existent user (expect 404)
+DELETE http://localhost:8080/api/users/999
+Accept: application/json
