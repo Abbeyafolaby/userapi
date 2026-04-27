@@ -44,3 +44,106 @@ Accept: application/json
 ### Delete non-existent user (expect 404)
 DELETE http://localhost:8080/api/users/999
 Accept: application/json
+
+### Create user — missing name (expect 400)
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "name": "",
+  "email": "valid@example.com"
+}
+
+###
+
+### Create user — invalid email (expect 400)
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "name": "Diana",
+  "email": "not-an-email"
+}
+
+###
+
+### Create user — name too short (expect 400)
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "name": "A",
+  "email": "diana@example.com"
+}
+
+###
+
+### Create user — both fields invalid (expect 400, two errors)
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "name": "",
+  "email": "bad"
+}
+
+###
+
+### Update — only name, no email (valid partial update, expect 200)
+PUT http://localhost:8080/api/users/1
+Content-Type: application/json
+
+{
+  "name": "Alice Renamed"
+}
+
+###
+
+### Update — invalid email format (expect 400)
+PUT http://localhost:8080/api/users/1
+Content-Type: application/json
+
+{
+  "name": "Alice",
+  "email": "not-valid"
+}
+
+### Validation failure — blank name (expect 400 with field errors)
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "name": "",
+  "email": "bad-email"
+}
+
+###
+
+### Resource not found (expect 404 with message)
+GET http://localhost:8080/api/users/999
+
+###
+
+### Delete non-existent user (expect 404)
+DELETE http://localhost:8080/api/users/999
+
+###
+
+### Valid create (expect 201)
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "name": "Diana",
+  "email": "diana@example.com"
+}
+
+###
+
+### Valid partial update — name only (expect 200)
+PUT http://localhost:8080/api/users/1
+Content-Type: application/json
+
+{
+  "name": "Alice Updated"
+}

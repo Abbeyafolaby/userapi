@@ -1,66 +1,64 @@
 package com.learn.userapi.controller;
 
-import com.learn.userapi.model.User;
+import com.learn.userapi.dto.request.UserCreateRequest;
+import com.learn.userapi.dto.request.UserUpdateRequest;
+import com.learn.userapi.dto.response.ApiResponse;
+import com.learn.userapi.dto.response.UserResponse;
 import com.learn.userapi.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController  // Bean + serialize return values to JSON
-@RequestMapping("/api/users")  // base URL prefix for all methods in this class
+@RestController
+@RequestMapping("/api/users")
 public class UserController {
 
     private final UserService userService;
 
-    // constructor injection — Spring injects UserService automatically
     public UserController(UserService userService) {
         this.userService = userService;
-        System.out.println(">>> UserController created. UserService injected.");
     }
 
-    // GET /api/users
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers() {
+        return ResponseEntity.ok(
+                ApiResponse.success("Users retrieved successfully",
+                        userService.getAllUsers()));
     }
 
-    // GET /api/users/{id}
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        return userService.getUserById(id)
-                .map(ResponseEntity::ok)// found -> 200 OK
-                .orElse(ResponseEntity.notFound().build()); // not found -> 404
+    public ResponseEntity<ApiResponse<UserResponse>> getUserById(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(
+                ApiResponse.success("User retrieved successfully",
+                        userService.getUserById(id)));
     }
 
-    // POST /api/users
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody UserRequest request) {
-        try {
-            User created =  userService.createUser(request.getName(), request.getEmail());
-            return ResponseEntity.status(HttpStatus.CREATED).body(created); // 201 Created
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build(); // 400 Bad Request
-        }
+    public ResponseEntity<ApiResponse<UserResponse>> createUser(
+            @Valid @RequestBody UserCreateRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("User created successfully",
+                        userService.createUser(request)));
     }
 
-    // PUT /api/users/{id}
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody UserRequest request) {
-        return userService.updateUser(id, request.getName(), request.getEmail())
-                .map(ResponseEntity::ok) // updated -> 200 OK
-                .orElse(ResponseEntity.notFound().build()); // not found -> 404
+    public ResponseEntity<ApiResponse<UserResponse>> updateUser(
+            @PathVariable Long id,
+            @Valid @RequestBody UserUpdateRequest request) {
+        return ResponseEntity.ok(
+                ApiResponse.success("User updated successfully",
+                        userService.updateUser(id, request)));
     }
 
-    // DELETE /api/users/{id}
     @DeleteMapping("/{id}")
-    public ResponseEntity<User> deleteUser(@PathVariable Long id) {
-        boolean deleted = userService.deleteUser(id);
-        return deleted
-                ? ResponseEntity.ok().build()  // 204 No Content
-                : ResponseEntity.notFound().build();  // 404 Not found
+    public ResponseEntity<ApiResponse<Void>> deleteUser(
+            @PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.ok(
+                ApiResponse.success("User deleted successfully", null));
     }
-
 }

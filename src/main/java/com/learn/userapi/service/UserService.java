@@ -1,51 +1,87 @@
 package com.learn.userapi.service;
 
+import com.learn.userapi.dto.request.UserCreateRequest;
+import com.learn.userapi.dto.request.UserUpdateRequest;
+import com.learn.userapi.dto.response.UserResponse;
+import com.learn.userapi.exception.ResourceNotFoundException;
 import com.learn.userapi.model.User;
 import com.learn.userapi.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserService {
+
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
+
     private final UserRepository userRepository;
 
-    // Constructor injection — Spring sees this and automatically injects UserRepository
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        System.out.println(">>> UserService created. UserRepository injected: " + userRepository);
+        log.info("UserService initialized");
     }
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<UserResponse> getAllUsers() {
+        log.debug("Fetching all users");
+        List<UserResponse> users = userRepository.findAll()
+                .stream()
+                .map(UserResponse::fromUser)
+                .toList();
+        log.info("Retrieved {} users", users.size());
+        return users;
     }
 
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
+    public UserResponse getUserById(Long id) {
+        log.debug("Fetching user with id: {}", id);
+        return userRepository.findById(id)
+                .map(user -> {
+                    log.info("User found with id: {}", id);
+                    return UserResponse.fromUser(user);
+                })
+                .orElseThrow(() -> {
+                    log.warn("User not found with id: {}", id);
+                    return new ResourceNotFoundException("User", id);
+                });
     }
 
-    public User createUser(String name, String email) {
-        // business logic lives here — e.g. validation rules
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Name must not be blank");
+    public UserResponse createUser(UserCreateRequest request) {
+        log.debug("Creating user with email: {}", request.getEmail());
+        User user = new User(null, request.getName(), request.getEmail());
+        UserResponse created = UserResponse.fromUser(userRepository.save(user));
+        log.info("User created successfully with id: {}", created.getId());
+        return created;
+    }
+
+    public UserResponse updateUser(Long id, UserUpdateRequest request) {
+        log.debug("Updating user with id: {}", id);
+        User existing = userRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Update failed — user not found with id: {}", id);
+                    return new ResourceNotFoundException("User", id);
+                });
+
+        if (request.getName() != null) {
+            existing.setName(request.getName());
         }
-        if (email == null || email.isBlank()) {
-            throw new IllegalArgumentException("Email must not be blank");
+        if (request.getEmail() != null) {
+            existing.setEmail(request.getEmail());
         }
-        User user = new User(null, name, email);
-        return userRepository.save(user);
+
+        UserResponse updated = UserResponse.fromUser(userRepository.save(existing));
+        log.info("User updated successfully with id: {}", id);
+        return updated;
     }
 
-    public Optional<User> updateUser(Long id, String name, String email) {
-        return userRepository.findById(id).map(existing -> {
-            existing.setName(name);
-            existing.setEmail(email);
-            return userRepository.save(existing);
-        });
-    }
-
-    public boolean deleteUser(Long id) {
-        return userRepository.deleteById(id);
+    public void deleteUser(Long id) {
+        log.debug("Deleting user with id: {}", id);
+        if (!userRepository.existsById(id)) {
+            log.warn("Delete failed — user not found with id: {}", id);
+            throw new ResourceNotFoundException("User", id);
+        }
+        userRepository.deleteById(id);
+        log.info("User deleted successfully with id: {}", id);
     }
 }
