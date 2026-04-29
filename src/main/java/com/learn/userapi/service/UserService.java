@@ -3,16 +3,19 @@ package com.learn.userapi.service;
 import com.learn.userapi.dto.request.UserCreateRequest;
 import com.learn.userapi.dto.request.UserUpdateRequest;
 import com.learn.userapi.dto.response.UserResponse;
+import com.learn.userapi.exception.DuplicateResourceException;
 import com.learn.userapi.exception.ResourceNotFoundException;
 import com.learn.userapi.model.User;
 import com.learn.userapi.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@Transactional
 public class UserService {
 
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
@@ -24,6 +27,7 @@ public class UserService {
         log.info("UserService initialized");
     }
 
+    @Transactional(readOnly = true)
     public List<UserResponse> getAllUsers() {
         log.debug("Fetching all users");
         List<UserResponse> users = userRepository.findAll()
@@ -34,6 +38,7 @@ public class UserService {
         return users;
     }
 
+    @Transactional(readOnly = true)
     public UserResponse getUserById(Long id) {
         log.debug("Fetching user with id: {}", id);
         return userRepository.findById(id)
@@ -49,7 +54,12 @@ public class UserService {
 
     public UserResponse createUser(UserCreateRequest request) {
         log.debug("Creating user with email: {}", request.getEmail());
-        User user = new User(null, request.getName(), request.getEmail());
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new DuplicateResourceException("Email already in use: " + request.getEmail());
+        }
+
+        User user = new User(request.getName(), request.getEmail());
         UserResponse created = UserResponse.fromUser(userRepository.save(user));
         log.info("User created successfully with id: {}", created.getId());
         return created;

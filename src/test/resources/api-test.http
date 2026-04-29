@@ -15,8 +15,8 @@ POST http://localhost:8080/api/users
 Content-Type: application/json
 
 {
-  "name": "Diana",
-  "email": "diana@example.com"
+  "name": "Ben",
+  "email": "ben@example.com"
 }
 
 ### Create user with blank name (expect 400)
@@ -33,8 +33,8 @@ PUT http://localhost:8080/api/users/1
 Content-Type: application/json
 
 {
-  "name": "Alice Updated",
-  "email": "alice.updated@example.com"
+  "name": "Daniel",
+  "email": "dan.26@example.com"
 }
 
 ### Delete a user
@@ -147,3 +147,57 @@ Content-Type: application/json
 {
   "name": "Alice Updated"
 }
+
+### First create a user
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "name": "Alice",
+  "email": "alice@example.com"
+}
+
+###
+
+### Create order for user 1
+POST http://localhost:8080/api/users/1/orders
+Content-Type: application/json
+
+{
+  "totalAmount": 99.99
+}
+
+###
+
+### Create another order for user 1
+POST http://localhost:8080/api/users/1/orders
+Content-Type: application/json
+
+{
+  "totalAmount": 49.50
+}
+
+###
+
+### Get all orders for user 1
+GET http://localhost:8080/api/users/1/orders
+
+###
+
+### Get specific order
+GET http://localhost:8080/api/users/1/orders/1
+
+###
+
+### Update order status
+PATCH http://localhost:8080/api/users/1/orders/1/status?status=CONFIRMED
+
+###
+
+### Try wrong user id (expect 404)
+GET http://localhost:8080/api/users/999/orders/1
+
+###
+
+### Delete order
+DELETE http://localhost:8080/api/users/1/orders/2
