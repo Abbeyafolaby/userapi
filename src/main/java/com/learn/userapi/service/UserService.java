@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.learn.userapi.repository.OrderRepository;
 
 import java.util.List;
 
@@ -21,9 +22,11 @@ public class UserService {
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository,  OrderRepository orderRepository) {
         this.userRepository = userRepository;
+        this.orderRepository = orderRepository;
         log.info("UserService initialized");
     }
 
@@ -63,6 +66,19 @@ public class UserService {
         UserResponse created = UserResponse.fromUser(userRepository.save(user));
         log.info("User created successfully with id: {}", created.getId());
         return created;
+    }
+
+    @Transactional(readOnly = true)
+    public UserResponse getUserWithOrderCount(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", id));
+
+        long orderCount = orderRepository.countByUserId(id);
+        log.info("User id: {} has {} orders", id, orderCount);
+
+        // countByUserId fires one COUNT query — no lazy loading triggered
+        // we deliberately don't access user.getOrders() to avoid N+1
+        return UserResponse.fromUser(user);
     }
 
     public UserResponse updateUser(Long id, UserUpdateRequest request) {

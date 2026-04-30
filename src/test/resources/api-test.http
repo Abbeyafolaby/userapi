@@ -201,3 +201,127 @@ GET http://localhost:8080/api/users/999/orders/1
 
 ### Delete order
 DELETE http://localhost:8080/api/users/1/orders/2
+
+
+
+### Add items to order 1 (create user + order first)
+POST http://localhost:8080/api/users/1/orders/1/items
+Content-Type: application/json
+
+{ "productId": 1, "quantity": 2 }
+
+###
+
+### Add second product to same order
+POST http://localhost:8080/api/users/1/orders/1/items
+Content-Type: application/json
+
+{ "productId": 2, "quantity": 3 }
+
+###
+
+### Add same product again — quantity should increase
+POST http://localhost:8080/api/users/1/orders/1/items
+Content-Type: application/json
+
+{ "productId": 1, "quantity": 1 }
+
+###
+
+### Get all items in order
+GET http://localhost:8080/api/users/1/orders/1/items
+
+###
+
+### Get order — check totalAmount updated
+GET http://localhost:8080/api/users/1/orders/1
+
+### Create test products (run multiple times with different names)
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{ "name": "Keyboard", "description": "Mechanical keyboard",
+  "price": 79.99, "stockQuantity": 100 }
+
+###
+
+### Get first page — default size 10, sorted by createdAt desc
+GET http://localhost:8080/api/products
+
+###
+
+### Get page 0, size 2, sorted by price ascending
+GET http://localhost:8080/api/products?page=0&size=2&sort=price,asc
+
+###
+
+### Get page 1, size 2 (second page)
+GET http://localhost:8080/api/products?page=1&size=2&sort=price,asc
+
+###
+
+### Search by name with pagination
+GET http://localhost:8080/api/products?name=key&page=0&size=5
+
+###
+
+### Try invalid sort field (expect 400)
+GET http://localhost:8080/api/products?sort=description,asc
+
+###
+
+### Paginated orders for user 1
+GET http://localhost:8080/api/users/1/orders/paged?page=0&size=3
+
+###
+
+### Try size above max (should be capped at 100)
+GET http://localhost:8080/api/products?size=999
+
+### User order summaries (Query 10)
+GET http://localhost:8080/api/analytics/users/order-summary
+
+###
+
+### Top spenders above £50 (Query 11)
+GET http://localhost:8080/api/analytics/users/top-spenders?minSpend=50
+
+###
+
+### Total spent by user 1 (Query 3)
+GET http://localhost:8080/api/analytics/users/1/total-spent
+
+###
+
+### Low stock products (threshold 100) (Query 7)
+GET http://localhost:8080/api/analytics/products/low-stock?threshold=100
+
+###
+
+### Who purchased product 1? (Query 12 — 3 entity join)
+GET http://localhost:8080/api/analytics/products/1/purchasers
+
+###
+
+### Orders in date range (Query 1)
+GET http://localhost:8080/api/users/1/orders/search/date-range?from=2026-01-01T00:00:00&to=2026-12-31T23:59:59
+
+###
+
+### Orders above amount (Query 2)
+GET http://localhost:8080/api/users/1/orders/search/min-amount?minAmount=50
+
+###
+
+### Filtered + paginated orders (Query 5)
+GET http://localhost:8080/api/users/1/orders/filtered?status=PENDING&page=0&size=5
+
+###
+
+### Filtered with no status filter (null passes through)
+GET http://localhost:8080/api/users/1/orders/filtered?page=0&size=5
+
+###
+
+### Full text product search (Query 8)
+GET http://localhost:8080/api/products?name=lap

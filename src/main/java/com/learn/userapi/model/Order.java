@@ -3,6 +3,9 @@ package com.learn.userapi.model;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Entity
 @Table(name = "orders")
@@ -29,12 +32,37 @@ public class Order {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @OneToMany(
+            mappedBy = "order",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<OrderItem> orderItems = new ArrayList<>();
+
     protected Order() {}
 
     public Order(User user) {
         this.user = user;
         this.status = OrderStatus.PENDING;
         this.totalAmount = BigDecimal.ZERO;
+    }
+
+    public void addOrderItem(OrderItem orderItem) {
+        orderItems.add(orderItem);
+    }
+
+    public void removeOrderItem(OrderItem orderItem) {
+        orderItems.remove(orderItem);
+    }
+
+    public List<OrderItem> getOrderItems() {
+        return Collections.unmodifiableList(orderItems);
+    }
+
+    public void recalculateTotal() {
+        this.totalAmount = orderItems.stream()
+                .map(OrderItem::getLineTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @PrePersist

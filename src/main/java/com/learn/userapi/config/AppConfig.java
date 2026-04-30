@@ -1,13 +1,11 @@
 package com.learn.userapi.config;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
 
+import static org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO;
 
-@Configuration // Spring: scan this class for @ Bean methods
+@Configuration
+@EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO)
 public class AppConfig {
-
-
-
 }
