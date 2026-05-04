@@ -240,7 +240,7 @@ GET http://localhost:8080/api/users/1/orders/1
 POST http://localhost:8080/api/products
 Content-Type: application/json
 
-{ "name": "Keyboard", "description": "Mechanical keyboard",
+{ "name": "Key", "description": "Key chain holder",
   "price": 79.99, "stockQuantity": 100 }
 
 ###
@@ -325,3 +325,213 @@ GET http://localhost:8080/api/users/1/orders/filtered?page=0&size=5
 
 ### Full text product search (Query 8)
 GET http://localhost:8080/api/products?name=lap
+
+
+### Register a new user
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Alice",
+  "email": "alice@example.com",
+  "password": "password123"
+}
+
+###
+
+### Register second user (will be ADMIN later)
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Admin User",
+  "email": "admin@example.com",
+  "password": "adminpass123"
+}
+
+###
+
+### Try duplicate registration (expect 409)
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Alice Again",
+  "email": "alice@example.com",
+  "password": "password123"
+}
+
+###
+
+### Login
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "alice@example.com",
+  "password": "password123"
+}
+
+###
+
+### Wrong password (expect 401)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "alice@example.com",
+  "password": "wrongpassword"
+}
+
+###
+
+### Refresh token — paste refreshToken from login response
+POST http://localhost:8080/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "paste-your-refresh-token-here"
+}
+
+###
+
+### Logout
+POST http://localhost:8080/api/auth/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "paste-your-refresh-token-here"
+}
+
+###
+
+### Try refresh after logout (expect 401)
+POST http://localhost:8080/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "paste-your-refresh-token-here"
+}
+
+### Try protected route without token (expect 401)
+GET http://localhost:8080/api/users
+
+###
+
+### Register to get tokens
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Alice",
+  "email": "alice@example.com",
+  "password": "password123"
+}
+
+###
+
+### Access own profile with token (expect 200)
+GET http://localhost:8080/api/users/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9VU0VSIiwic3ViIjoiYWxpY2VAZXhhbXBsZS5jb20iLCJpYXQiOjE3Nzc4OTgxOTQsImV4cCI6MTc3Nzg5OTA5NH0.rWqz2Og8XKMeWvFcHSL209mVvuQjU5KDAuTZ549bCPI
+
+###
+
+### Try ADMIN route as USER (expect 403)
+GET http://localhost:8080/api/users
+Authorization: Bearer paste-user-access-token-here
+
+###
+
+### Login as admin
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "adminpass123"
+}
+
+###
+
+### Access ADMIN route with admin token (expect 200)
+GET http://localhost:8080/api/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BRE1JTiIsInN1YiI6ImFkbWluQGV4YW1wbGUuY29tIiwiaWF0IjoxNzc3ODk4MDU3LCJleHAiOjE3Nzc4OTg5NTd9.rXcKnj3AbmTf7NLJd6shqOo3hY5SB92F8CcMy0-OXwk
+
+###
+
+### Create product as ADMIN (expect 201)
+POST http://localhost:8080/api/products
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BRE1JTiIsInN1YiI6ImFkbWluQGV4YW1wbGUuY29tIiwiaWF0IjoxNzc3ODk4MDU3LCJleHAiOjE3Nzc4OTg5NTd9.rXcKnj3AbmTf7NLJd6shqOo3hY5SB92F8CcMy0-OXwk
+Content-Type: application/json
+
+{
+  "name": "Laptop",
+  "description": "A powerful laptop",
+  "price": 999.99,
+  "stockQuantity": 50
+}
+
+###
+
+### Create product as USER (expect 403)
+POST http://localhost:8080/api/products
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9BRE1JTiIsInN1YiI6ImFkbWluQGV4YW1wbGUuY29tIiwiaWF0IjoxNzc3ODk4MDU3LCJleHAiOjE3Nzc4OTg5NTd9.rXcKnj3AbmTf7NLJd6shqOo3hY5SB92F8CcMy0-OXwk
+Content-Type: application/json
+
+{
+  "name": "Mouse",
+  "description": "Wireless mouse",
+  "price": 29.99,
+  "stockQuantity": 200
+}
+
+###
+
+### Use expired/invalid token (expect 401)
+GET http://localhost:8080/api/users/me
+Authorization: Bearer invalidtoken.fake.signature
+
+### ── COOKIE MODE TESTS ─────────────────────────────────────────────────
+
+### Cookie register — response body has user, no tokens
+### Check response headers for Set-Cookie
+POST http://localhost:8080/api/auth/cookie/register
+Content-Type: application/json
+
+{
+  "name": "Bob",
+  "email": "bob@example.com",
+  "password": "password123"
+}
+
+###
+
+### Cookie login — sets cookies, no tokens in body
+POST http://localhost:8080/api/auth/cookie/login
+Content-Type: application/json
+
+{
+  "email": "bob@example.com",
+  "password": "password123"
+}
+
+###
+
+### Access protected route WITH cookie (IntelliJ HTTP client sends cookies automatically)
+### After cookie login above, this should work without Authorization header
+GET http://localhost:8080/api/users/me
+
+###
+
+### Cookie refresh — no body, reads cookie automatically
+POST http://localhost:8080/api/auth/cookie/refresh
+
+###
+
+### Cookie logout — clears cookies
+POST http://localhost:8080/api/auth/cookie/logout
+
+###
+
+### After cookie logout — access should fail (expect 401)
+GET http://localhost:8080/api/users/me

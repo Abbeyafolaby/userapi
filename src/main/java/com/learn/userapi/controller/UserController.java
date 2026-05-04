@@ -9,6 +9,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.learn.userapi.model.User;
 
 import java.util.List;
 
@@ -35,6 +37,14 @@ public class UserController {
         return ResponseEntity.ok(
                 ApiResponse.success("User retrieved successfully",
                         userService.getUserById(id)));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(
+            @AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Profile retrieved successfully",
+                UserResponse.fromUser(currentUser)));
     }
 
     @PostMapping

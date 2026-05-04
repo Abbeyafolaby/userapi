@@ -5,6 +5,7 @@ import com.learn.userapi.dto.request.UserUpdateRequest;
 import com.learn.userapi.dto.response.UserResponse;
 import com.learn.userapi.exception.DuplicateResourceException;
 import com.learn.userapi.exception.ResourceNotFoundException;
+import com.learn.userapi.model.Role;
 import com.learn.userapi.model.User;
 import com.learn.userapi.repository.UserRepository;
 import org.slf4j.Logger;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.learn.userapi.repository.OrderRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 
@@ -23,10 +25,12 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository,  OrderRepository orderRepository) {
+    public UserService(UserRepository userRepository,  OrderRepository orderRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
+        this.passwordEncoder = passwordEncoder;
         log.info("UserService initialized");
     }
 
@@ -56,15 +60,20 @@ public class UserService {
     }
 
     public UserResponse createUser(UserCreateRequest request) {
-        log.debug("Creating user with email: {}", request.getEmail());
-
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new DuplicateResourceException("Email already in use: " + request.getEmail());
+            throw new DuplicateResourceException(
+                    "Email already in use: " + request.getEmail());
         }
-
-        User user = new User(request.getName(), request.getEmail());
+        // password encoding happens in AuthService for registration
+        // UserService.createUser is now only used internally or by ADMIN
+        User user = new User(
+                request.getName(),
+                request.getEmail(),
+                passwordEncoder.encode(request.getPassword()),  // hash the password
+                Role.USER                                        // default role
+        );
         UserResponse created = UserResponse.fromUser(userRepository.save(user));
-        log.info("User created successfully with id: {}", created.getId());
+        log.info("User created with id: {}", created.getId());
         return created;
     }
 
