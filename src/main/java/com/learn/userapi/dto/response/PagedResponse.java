@@ -1,6 +1,8 @@
 package com.learn.userapi.dto.response;
 
 import org.springframework.data.domain.Page;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
@@ -14,9 +16,16 @@ public class PagedResponse<T> {
     private boolean first;
     private boolean last;
 
-    private PagedResponse(List<T> content, int page, int size,
-                          long totalElements, int totalPages,
-                          boolean first, boolean last) {
+
+    @JsonCreator
+    private PagedResponse(
+            @JsonProperty("content") List<T> content,
+            @JsonProperty("page") int page,
+            @JsonProperty("size") int size,
+            @JsonProperty("totalElements") long totalElements,
+            @JsonProperty("totalPages") int totalPages,
+            @JsonProperty("first") boolean first,
+            @JsonProperty("last") boolean last) {
         this.content = content;
         this.page = page;
         this.size = size;

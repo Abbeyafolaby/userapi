@@ -3,6 +3,9 @@ package com.learn.userapi.dto.response;
 import com.learn.userapi.model.Product;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 
 public class ProductResponse {
 
@@ -13,9 +16,14 @@ public class ProductResponse {
     private Integer stockQuantity;
     private LocalDateTime createdAt;
 
-    private ProductResponse(Long id, String name, String description,
-                            BigDecimal price, Integer stockQuantity,
-                            LocalDateTime createdAt) {
+    @JsonCreator
+    private ProductResponse(
+            @JsonProperty("id") Long id,
+            @JsonProperty("name") String name,
+            @JsonProperty("description") String description,
+            @JsonProperty("price") BigDecimal price,
+            @JsonProperty("stockQuantity") Integer stockQuantity,
+            @JsonProperty("createdAt") LocalDateTime createdAt) {
         this.id = id;
         this.name = name;
         this.description = description;
